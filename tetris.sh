@@ -49,6 +49,7 @@ good_game=(
     '          press   Q   to quit                    '
     '          press   N   to start a new game        '
     '          press   S   to change the level        '
+    '          press   R   to replay your game        '
     '                                                 '
 );
 
@@ -66,6 +67,9 @@ start_game=(
     '         Press <Enter> to start the game         '
     '                                                 '
 );
+
+blockarr=(); #记录name 和 flag
+keyarray=(); #记录按键
 #------------------------------------------------------------------------#
 
 #========================================================================#
@@ -206,13 +210,14 @@ paint_gui() {
 
     echo -ne "\033[$((hpctx+11));$((hpcty))H\e[34mP --- Pause Game\e[0m";
     echo -ne "\033[$((hpctx+13));$((hpcty))H\e[34mQ --- Quit Game\e[0m";
+    echo -ne "\033[$((hpctx+15));$((hpcty))H\e[34mE --- Exit Replay\e[0m";
 }
 
 #---------------------------------------------------------
 
 #在next框中打印下一个方块图形
 paint_next() {
-    mk_random;
+    (($#==0)) && mk_random;
     local oflag=$flag oname=$name
 
     ((centerx=mainctx+2)); ((centery=maincty+9));
@@ -440,14 +445,14 @@ go_fast() { #快速固定
 }
 
 game_pause() {
-    echo -ne "\033[$((hpctx+16));$((hpcty+5))H\e[31mGame Paused\e[0m";
+    echo -ne "\033[$((hpctx+17));$((hpcty+5))H\e[31mGame Paused\e[0m";
     local pkey;
     while true; do
         read -n 1 pkey;
         [[ $pkey = 'q' ]] || [[ $pkey == 'Q' ]] && game_exit;
         [[ $pkey = 'p' ]] || [[ $pkey == 'P' ]] && break;
     done
-    echo -ne "\033[$((hpctx+16));$((hpcty+5))H\e[31m           \e[0m";
+    echo -ne "\033[$((hpctx+17));$((hpcty+5))H\e[31m           \e[0m";
 }
         
 # 根据按键作出选择
@@ -489,12 +494,17 @@ new_game() {
     game_init; #初始化游戏
     while true; do
         paint_next; #在next框中打印下一个方块
+        blockarr+=($name $flag $nname $nflag);
+
         check_first; (($?==1)) && return; #检查是否游戏结束
 
         while true; do
             for (( i = 0; i < TIME; i++ )); do
                 read -n 1 -t 0.1 key; #等待按键
                 (($?==0)) && keypress; 
+                (($?==0)) && keyarray+=(${key:-space});
+                (($?==0)) || keyarray+=("nothing");
+
                 ((nextbk==1)) && !((nextbk=0)) && break;
             done
 
@@ -507,13 +517,58 @@ new_game() {
     done
 }
 
-game_over() {
+replay() {
+    score=0; level=$olevel;
+    local gmover=0 nextbk=0 i=0 j=0;
+    local blocklen=$((${#blockarr[@]})) keylen=${#keyarray[@]};
+
+    game_init;
+    for ((i=0; i<blocklen; i+=4)); do
+        name=${blockarr[i]}; flag=${blockarr[i+1]};
+        nname=${blockarr[i+2]}; nflag=${blockarr[i+3]};
+
+        paint_next -n;
+        check_first; (($?==1)) && return 0;
+
+        while true; do
+            local k=0 anykey;
+            while true; do
+                key=${keyarray[j++]}; [[ $key = [pP] ]] && continue;
+                keypress; 
+                #((j+=1));
+
+                read -n 1 -t 0.1 anykey; 
+                if (($?==0)); then 
+                    [[ $anykey = [pP] ]] && game_pause;
+                    [[ $anykey = [qQ] ]] && game_exit;
+                    [[ $anykey = [eE] ]] && level=1 && return 0;
+                fi
+
+                ((nextbk==1)) && !((nextbk=0)) && break;
+                ((k+=1)) && ((k==TIME)) && break;
+            done
+ 
+            check_stop; (($?==1)) && break;
+            erase_x; ((centerx+=1)); paint_x;
+        done
+        ((score+=10));
+    done
+
+    score=0; level=1;
+    return 0;
+}
+
+paint_game_over() {
     local xcent=$((`tput lines`/2)) ycent=$((`tput cols`/2))
     local x=$((xcent-4)) y=$((ycent-25))
-    for (( i = 0; i < 9; i++ )); do
+    for (( i = 0; i < 10; i++ )); do
         echo -ne "\033[$((x+i));${y}H\e[44m${good_game[$i]}\e[0m";
     done
     echo -ne "\033[$((x+3));$((ycent+1))H\e[44m${score}\e[0m";
+}
+
+game_over() {
+    paint_game_over;
 
     level=1; local pkey;
     while true; do
@@ -521,9 +576,12 @@ game_over() {
         [[ $pkey = 'q' ]] || [[ $pkey = 'Q' ]] && game_exit;
         [[ $pkey = 'n' ]] || [[ $pkey = 'N' ]] && break;
         [[ $pkey = 's' ]] || [[ $pkey = 'S' ]] && ((level=level%9+1));
+        [[ $pkey = 'r' ]] || [[ $pkey = 'R' ]] && replay && paint_game_over;
         echo -ne "\033[$((lvctx));$((lvcty))H\e[31m$level\e[0m";
     done
     olevel=$level;
+    blockarr=();
+    keyarray=();
 }
 
 game_start() {
@@ -569,3 +627,4 @@ game_main() {
 #----------------------------------------------------------------------#
 
 game_main;
+
