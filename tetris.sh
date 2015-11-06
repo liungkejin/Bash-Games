@@ -628,3 +628,4 @@ game_main() {
 
 game_main;
 
+:;
