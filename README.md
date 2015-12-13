@@ -21,7 +21,7 @@ ClockSaver.sh 利用了 logkey s这个工具(需要root权限), 所以可以达�
 
 贪吃蛇 (Snake)
 =================
-#这个贪吃蛇不怎么好看。。。
+这个贪吃蛇不怎么好看。。。
 ######![image](https://github.com/liungkejin/Bash-Games/tree/master/images/snake1.png)
 ######![image](https://github.com/liungkejin/Bash-Games/tree/master/images/snake2.png)
 
