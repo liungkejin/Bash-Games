@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# Author: LKJ
+# Date: 2013/5/14
+# Email: liungkejin@gmail.com
+#
 
 asciinumber=(
     '    .XEEEEb           ,:LHL          :LEEEEEG        .CNEEEEE8                bMNj       NHKKEEEEEX           1LEEE1    KEEEEEEEKNMHH       8EEEEEL.         cEEEEEO    '

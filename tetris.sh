@@ -1,5 +1,10 @@
 #!/bin/bash
 # filename: tetris.sh
+#
+# Author: LKJ
+# Date: 2013.5.14
+# Email: liungkejin@gmail.com
+#
 
 # const value
 #======================================固定值================================#

@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Author: LKJ
+# Email : liungkejin@gmail.com
+# Date  : 2013.5.14
+#
+
 ################################################
 # 实现从dict.baidu.com接口获取网络释义
 # 实现英译汉，汉译英
