@@ -38,7 +38,7 @@ function print_number {
     start_y=$(($2*17+$3*4+$beg_y));
 
     for (( i = 0; i < len; i++ )); do
-        echo -ne "\033[$((beg_x+i));${start_y}H\e[1;32m${asciinumber[$i]:$start:17}\e[0m";
+        echo -ne "\033[$((beg_x+i));${start_y}H\033[1;32m${asciinumber[$i]:$start:17}\033[0m";
     done
 }
 
@@ -48,8 +48,8 @@ function print_number {
 function print_dot {
     local pt=$(($1*17+$2*4+beg_y));
     for (( j = 0; j < 2; j++ )); do
-        echo -ne "\033[$((beg_x+j+3));${pt}H\e[1;32m${asciidot[$j]}\e[0m";
-        echo -ne "\033[$((beg_x+j+10));${pt}H\e[1;32m${asciidot[$j]}\e[0m";
+        echo -ne "\033[$((beg_x+j+3));${pt}H\033[1;32m${asciidot[$j]}\033[0m";
+        echo -ne "\033[$((beg_x+j+10));${pt}H\033[1;32m${asciidot[$j]}\033[0m";
     done
 }
 
@@ -141,12 +141,14 @@ function EXIT {
 
 INIT;
 while true; do
-    read -t 0.01 -n 1 anykey;
+    read -t 1 -n 1 anykey;
     if [[ $? -eq 0 ]]; then
         EXIT;
     fi
     print_all;
-    sleep 0.3; 
+#    if sleep 0.3 &> /dev/null; then
+#	sleep 1; 
+#    fi;
 done
 
 exit 0;

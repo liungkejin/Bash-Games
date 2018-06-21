@@ -150,9 +150,9 @@ paint_block() {
     x=$((upx+x*BXLINES+1));
     y=$((lty+y*BXCOLNS+1));
 
-    echo -ne "\033[$((x));$((y))H\e[${crone}m+---+\e[0m";
-    echo -ne "\033[$((x+1));$((y))H\e[${crone}m|\e[${crtwo}m###\e[0m\e[${crone}m|\e[0m";
-    echo -ne "\033[$((x+2));$((y))H\e[${crone}m+---+\e[0m";
+    echo -ne "\033[$((x));$((y))H\033[${crone}m+---+\033[0m";
+    echo -ne "\033[$((x+1));$((y))H\033[${crone}m|\033[${crtwo}m###\033[0m\033[${crone}m|\033[0m";
+    echo -ne "\033[$((x+2));$((y))H\033[${crone}m+---+\033[0m";
 }
 
 #删除一个小方块, 两个参数，即位置
@@ -171,18 +171,18 @@ erase_block() {
 paint_box() {
     local x=$1 y=$2 w=$3 h=$4 color=$5 i
 
-    echo -ne "\033[$x;$((y))H\e[${color}m+\e[0m";
-    echo -ne "\033[$x;$((y+w+1))H\e[${color}m+\e[0m";
+    echo -ne "\033[$x;$((y))H\033[${color}m+\033[0m";
+    echo -ne "\033[$x;$((y+w+1))H\033[${color}m+\033[0m";
     for (( i = 1; i <= w; i++ )); do
-        echo -ne "\033[$x;$((y+i))H\e[${color}m-\e[0m";
-        echo -ne "\033[$((x+h+1));$((y+i))H\e[${color}m-\e[0m";
+        echo -ne "\033[$x;$((y+i))H\033[${color}m-\033[0m";
+        echo -ne "\033[$((x+h+1));$((y+i))H\033[${color}m-\033[0m";
     done
-    echo -ne "\033[$((x+h+1));$((y))H\e[${color}m+\e[0m";
-    echo -ne "\033[$((x+h+1));$((y+w+1))H\e[${color}m+\e[0m";
+    echo -ne "\033[$((x+h+1));$((y))H\033[${color}m+\033[0m";
+    echo -ne "\033[$((x+h+1));$((y+w+1))H\033[${color}m+\033[0m";
 
     for (( i = 1; i <= h; i++ )); do
-        echo -ne "\033[$((x+i));$((y))H\e[${color}mI\e[0m";
-        echo -ne "\033[$((x+i));$((y+w+1))H\e[${color}mI\e[0m";
+        echo -ne "\033[$((x+i));$((y))H\033[${color}mI\033[0m";
+        echo -ne "\033[$((x+i));$((y+w+1))H\033[${color}mI\033[0m";
     done
 }
 #---------------------------------------------------------------------------------------
@@ -198,24 +198,24 @@ paint_gui() {
     paint_box $hpx $hpy $helpw $helph 31; #画帮助框
 
 #打印score, help 等提示字符
-    echo -ne "\033[$((ntx+2));$((nty+17))H\e[34mN E X T\e[0m";
+    echo -ne "\033[$((ntx+2));$((nty+17))H\033[34mN E X T\033[0m";
 
-    echo -ne "\033[$((scx+2));$((scy+16))H\e[31mS C O R E\e[0m";
-    echo -ne "\033[$((scx+4));$((scy+20))H\e[31m0\e[0m";
+    echo -ne "\033[$((scx+2));$((scy+16))H\033[31mS C O R E\033[0m";
+    echo -ne "\033[$((scx+4));$((scy+20))H\033[31m0\033[0m";
 
-    echo -ne "\033[$((lvx+2));$((lvy+16))H\e[31mL E V E L\e[0m";
-    echo -ne "\033[$((lvctx));$((lvcty))H\e[31m1\e[0m";
+    echo -ne "\033[$((lvx+2));$((lvy+16))H\033[31mL E V E L\033[0m";
+    echo -ne "\033[$((lvctx));$((lvcty))H\033[31m1\033[0m";
 
-    echo -ne "\033[$((hpx+2));$((hpy+17))H\e[33mH E L P\e[0m";
-    echo -ne "\033[$((hpctx));$((hpcty))H\e[34mH --- Move Left\e[0m";
-    echo -ne "\033[$((hpctx+2));$((hpcty))H\e[34mL --- Move Right\e[0m";
-    echo -ne "\033[$((hpctx+4));$((hpcty))H\e[34mJ --- Soft Drop\e[0m";
-    echo -ne "\033[$((hpctx+6));$((hpcty))H\e[34mK --- Rotate\e[0m";
-    echo -ne "\033[$((hpctx+8));$((hpcty))H\e[34mSpace or Enter --- Hard Drop\e[0m";
+    echo -ne "\033[$((hpx+2));$((hpy+17))H\033[33mH E L P\033[0m";
+    echo -ne "\033[$((hpctx));$((hpcty))H\033[34mH --- Move Left\033[0m";
+    echo -ne "\033[$((hpctx+2));$((hpcty))H\033[34mL --- Move Right\033[0m";
+    echo -ne "\033[$((hpctx+4));$((hpcty))H\033[34mJ --- Soft Drop\033[0m";
+    echo -ne "\033[$((hpctx+6));$((hpcty))H\033[34mK --- Rotate\033[0m";
+    echo -ne "\033[$((hpctx+8));$((hpcty))H\033[34mSpace or Enter --- Hard Drop\033[0m";
 
-    echo -ne "\033[$((hpctx+11));$((hpcty))H\e[34mP --- Pause Game\e[0m";
-    echo -ne "\033[$((hpctx+13));$((hpcty))H\e[34mQ --- Quit Game\e[0m";
-    echo -ne "\033[$((hpctx+15));$((hpcty))H\e[34mE --- Exit Replay\e[0m";
+    echo -ne "\033[$((hpctx+11));$((hpcty))H\033[34mP --- Pause Game\033[0m";
+    echo -ne "\033[$((hpctx+13));$((hpcty))H\033[34mQ --- Quit Game\033[0m";
+    echo -ne "\033[$((hpctx+15));$((hpcty))H\033[34mE --- Exit Replay\033[0m";
 }
 
 #---------------------------------------------------------
@@ -237,7 +237,7 @@ paint_next() {
 # 打印分数和level
 paint_score() {
     level=0;
-    echo -ne "\033[$((scctx));$((sccty))H\e[31m$score\e[0m";
+    echo -ne "\033[$((scctx));$((sccty))H\033[31m$score\033[0m";
     ((score>2000 )) && ((level=1)); ((score>5000 )) && ((level=2));
     ((score>9000 )) && ((level=3)); ((score>14000)) && ((level=4));
     ((score>20000)) && ((level=5)); ((score>27000)) && ((level=6));
@@ -246,7 +246,7 @@ paint_score() {
     ((level>9)) && ((level=9));
 
     ((TIME=10-level));
-    echo -ne "\033[$((lvctx));$((lvcty))H\e[31m$level\e[0m";
+    echo -ne "\033[$((lvctx));$((lvcty))H\033[31m$level\033[0m";
 }
 
 #根据name选择要打印的方块
@@ -450,14 +450,14 @@ go_fast() { #快速固定
 }
 
 game_pause() {
-    echo -ne "\033[$((hpctx+17));$((hpcty+5))H\e[31mGame Paused\e[0m";
+    echo -ne "\033[$((hpctx+17));$((hpcty+5))H\033[31mGame Paused\033[0m";
     local pkey;
     while true; do
         read -n 1 pkey;
         [[ $pkey = 'q' ]] || [[ $pkey == 'Q' ]] && game_exit;
         [[ $pkey = 'p' ]] || [[ $pkey == 'P' ]] && break;
     done
-    echo -ne "\033[$((hpctx+17));$((hpcty+5))H\e[31m           \e[0m";
+    echo -ne "\033[$((hpctx+17));$((hpcty+5))H\033[31m           \033[0m";
 }
         
 # 根据按键作出选择
@@ -567,9 +567,9 @@ paint_game_over() {
     local xcent=$((`tput lines`/2)) ycent=$((`tput cols`/2))
     local x=$((xcent-4)) y=$((ycent-25))
     for (( i = 0; i < 10; i++ )); do
-        echo -ne "\033[$((x+i));${y}H\e[44m${good_game[$i]}\e[0m";
+        echo -ne "\033[$((x+i));${y}H\033[44m${good_game[$i]}\033[0m";
     done
-    echo -ne "\033[$((x+3));$((ycent+1))H\e[44m${score}\e[0m";
+    echo -ne "\033[$((x+3));$((ycent+1))H\033[44m${score}\033[0m";
 }
 
 game_over() {
@@ -582,7 +582,7 @@ game_over() {
         [[ $pkey = 'n' ]] || [[ $pkey = 'N' ]] && break;
         [[ $pkey = 's' ]] || [[ $pkey = 'S' ]] && ((level=level%9+1));
         [[ $pkey = 'r' ]] || [[ $pkey = 'R' ]] && replay && paint_game_over;
-        echo -ne "\033[$((lvctx));$((lvcty))H\e[31m$level\e[0m";
+        echo -ne "\033[$((lvctx));$((lvcty))H\033[31m$level\033[0m";
     done
     olevel=$level;
     blockarr=();
@@ -608,7 +608,7 @@ game_start() {
 
     local x=$((xcent/2-4)) y=$((ycent/2-25))
     for (( i = 0; i < 12; i++ )); do
-        echo -ne "\033[$((x+i));${y}H\e[40m${start_game[$i]}\e[0m";
+        echo -ne "\033[$((x+i));${y}H\033[40m${start_game[$i]}\033[0m";
     done
 
     local pkey='x';
@@ -617,7 +617,7 @@ game_start() {
         [[ ${pkey:-enter} = 'enter' ]] && break;
         [[ $pkey = 'q' ]] || [[ $pkey = 'Q' ]] && game_exit;
         [[ $pkey = 's' ]] || [[ $pkey = 'S' ]] && ((level=level%9+1));
-        echo -ne "\033[$((x+8));$((ycent/2-1))H\e[40m$level\e[0m";
+        echo -ne "\033[$((x+8));$((ycent/2-1))H\033[40m$level\033[0m";
     done
     olevel=$level;
 }

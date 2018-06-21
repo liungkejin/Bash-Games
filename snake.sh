@@ -37,7 +37,7 @@ snake_exit() {  #退出游戏
 
 draw_gui() {                                  # 画边框 
     clear;
-    color="\e[34m*\e[0m";
+    color="\033[34m*\033[0m";
     for (( i = 0; i < $1; i++ )); do
         echo -ne "\033[$i;0H${color}";
         echo -ne "\033[$i;$2H${color}";
@@ -49,8 +49,8 @@ draw_gui() {                                  # 画边框
     done
 
     ch_speed 0;
-    echo -ne "\033[$Lines;$((yscore-10))H\e[36mScores: 0\e[0m";
-    echo -en "\033[$Lines;$((Cols-50))H\e[33mPress <space> or enter to pause game\e[0m";
+    echo -ne "\033[$Lines;$((yscore-10))H\033[36mScores: 0\033[0m";
+    echo -en "\033[$Lines;$((Cols-50))H\033[33mPress <space> or enter to pause game\033[0m";
 }
 
 snake_init() {
@@ -72,10 +72,10 @@ snake_init() {
 }
 
 game_pause() {                                #暂定游戏
-    echo -en "\033[$Lines;$((Cols-50))H\e[33mGame paused, Use space or enter key to continue\e[0m";
+    echo -en "\033[$Lines;$((Cols-50))H\033[33mGame paused, Use space or enter key to continue\033[0m";
     while read -n 1 space; do
         [[ ${space:-enter} = enter ]] && \
-            echo -en "\033[$Lines;$((Cols-50))H\e[33mPress <space> or enter to pause game           \e[0m" && return;
+            echo -en "\033[$Lines;$((Cols-50))H\033[33mPress <space> or enter to pause game           \033[0m" && return;
         [[ ${space:-enter} = q ]] && snake_exit;
     done
 }
@@ -97,7 +97,7 @@ ch_speed() {                                  #更新速度
          1) temp="Medium";;
          2) temp="Slow  ";;
      esac
-     echo -ne "\033[$Lines;3H\e[33mSpeed: $temp\e[0m";
+     echo -ne "\033[$Lines;3H\033[33mSpeed: $temp\033[0m";
 }
 
 Gooooo() {                                   #更新方向
@@ -126,7 +126,7 @@ add_node() {                                 #增加节点
         (( ${xpt[0]} == ${xpt[$i]} && ${ypt[0]} == ${ypt[$i]} )) && return 1; #crashed
     done
 
-    echo -ne "\033[${xpt[0]};${ypt[0]}H\e[32m${snake[@]:0:1}\e[0m";
+    echo -ne "\033[${xpt[0]};${ypt[0]}H\033[32m${snake[@]:0:1}\033[0m";
     return 0;
 }
 
@@ -151,11 +151,11 @@ new_game() {                                #重新开始新游戏
             add_node; (($?==0)) || return 1;
         else
             update 0; 
-            echo -ne "\033[${xpt[0]};${ypt[0]}H\e[32m${snake[@]:0:1}\e[0m";
+            echo -ne "\033[${xpt[0]};${ypt[0]}H\033[32m${snake[@]:0:1}\033[0m";
 
             for (( i = $((${#snake}-1)); i > 0; i-- )); do
                 update $i;
-                echo -ne "\033[${xpt[$i]};${ypt[$i]}H\e[32m${snake[@]:$i:1}\e[0m";
+                echo -ne "\033[${xpt[$i]};${ypt[$i]}H\033[32m${snake[@]:$i:1}\033[0m";
 
                 (( ${xpt[0]} == ${xpt[$i]} && ${ypt[0]} == ${ypt[$i]} )) && return 1; #crashed
                 [[ ${pos[$((i-1))]} = ${pos[$i]} ]] || pos[$i]=${pos[$((i-1))]};
@@ -174,9 +174,9 @@ new_game() {                                #重新开始新游戏
 print_good_game() {
     local x=$((xcent-4)) y=$((ycent-25))
     for (( i = 0; i < 8; i++ )); do
-        echo -ne "\033[$((x+i));${y}H\e[45m${good_game[$i]}\e[0m";
+        echo -ne "\033[$((x+i));${y}H\033[45m${good_game[$i]}\033[0m";
     done
-    echo -ne "\033[$((x+3));$((ycent+1))H\e[45m${sumscore}\e[0m";
+    echo -ne "\033[$((x+3));$((ycent+1))H\033[45m${sumscore}\033[0m";
 }
 
 print_game_start() {
@@ -184,7 +184,7 @@ print_game_start() {
 
     local x=$((xcent-5)) y=$((ycent-25))
     for (( i = 0; i < 10; i++ )); do
-        echo -ne "\033[$((x+i));${y}H\e[45m${game_start[$i]}\e[0m";
+        echo -ne "\033[$((x+i));${y}H\033[45m${game_start[$i]}\033[0m";
     done
 
     while read -n 1 anykey; do

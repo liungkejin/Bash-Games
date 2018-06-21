@@ -40,7 +40,7 @@ function print_number {
         tput cup `expr $beg_x + $i` $start_y;
 
         str=`expr substr "${asciinumber[$i]}" $start 17`;
-        echo -ne "\e[1;32m${str}\e[0m";
+        echo -ne "\033[1;32m${str}\033[0m";
     done
 }
 
@@ -50,12 +50,12 @@ function print_number {
 function print_dot {
     for (( j = 0; j < 2; j++ )); do
         tput cup `expr $beg_x + 3 + $j` `expr $1 \* 17 + $2 \* 4 + $beg_y + 1`
-        echo -ne "\e[1;32m${asciidot[$j]}\e[0m";
+        echo -ne "\033[1;32m${asciidot[$j]}\033[0m";
     done
 
     for (( j = 0; j < 2; j++ )); do
         tput cup `expr $beg_x + 10 + $j` `expr $1 \* 17 + $2 \* 4 + $beg_y + 1`
-        echo -ne "\e[1;32m${asciidot[$j]}\e[0m";
+        echo -ne "\033[1;32m${asciidot[$j]}\033[0m";
     done
 }
 
