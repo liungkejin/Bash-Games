@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # filename: clock.sh
 # wrote by LKJ, 2013,5,14
 # base on ANSI/VT100 terminal
