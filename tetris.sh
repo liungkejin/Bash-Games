@@ -542,7 +542,7 @@ replay() {
                 keypress; 
                 #((j+=1));
 
-                read -n 1 -t 0.1 anykey; 
+                read -n 1 -t 0.01 anykey; 
                 if (($?==0)); then 
                     [[ $anykey = [pP] ]] && game_pause;
                     [[ $anykey = [qQ] ]] && game_exit;
