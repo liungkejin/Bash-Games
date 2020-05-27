@@ -24,11 +24,11 @@ aclock.sh 则不需要root 权限, 因为他就仅仅用来显示数字时钟
 贪吃蛇 (Snake)
 =================
 这个贪吃蛇不怎么好看。。。
-######<img src="https://raw.githubusercontent.com/liungkejin/Bash-Games/master/images/snake1.png" width="600">
-######<img src="https://raw.githubusercontent.com/liungkejin/Bash-Games/master/images/snake2.png" width="600">
+<img src="https://raw.githubusercontent.com/liungkejin/Bash-Games/master/images/snake1.png" width="600">
+<img src="https://raw.githubusercontent.com/liungkejin/Bash-Games/master/images/snake2.png" width="600">
 
 
 终端翻译 (Translate)
 ====================
 这个脚本不知道还能不能用。。。如果那个网站接口没有换，应该还能用。。。。
-######<img src="https://raw.githubusercontent.com/liungkejin/Bash-Games/master/images/translate.png" width="600">
+<img src="https://raw.githubusercontent.com/liungkejin/Bash-Games/master/images/translate.png" width="600">
