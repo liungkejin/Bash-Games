@@ -4,6 +4,29 @@
 # snake game
 # Author: LKJ 2013.5.17
 
+EXITFLAG="/tmp/snake_exit.flag"
+WRITEFILE="/tmp/snake_pipe.in"
+READFILE="/tmp/snake_pipe.out"
+
+INPUT_PIPES=()
+readkey() {
+    local txt;
+    [ -f $WRITEFILE ] && mv $WRITEFILE $READFILE &> /dev/null
+    if [ -f $READFILE ]; then
+        txt="$(cat $READFILE 2> /dev/null)"
+        if ! [ -z "$txt" ]; then
+            INPUT_PIPES+=(${txt})
+        fi
+        rm $READFILE &> /dev/null
+    fi
+
+    if ((${#INPUT_PIPES[@]} > 0)); then
+        echo -n "${INPUT_PIPES[0]}";
+        unset INPUT_PIPES[0];
+        # INPUT_PIPES=(${INPUT_PIPES[@]:1})
+    fi
+}
+
 good_game=(
     '                                                 '
     '                G A M E  O V E R !               '
@@ -29,6 +52,8 @@ game_start=(
 );
 
 snake_exit() {  #退出游戏
+    touch $EXITFLAG;
+    wait # 等待进程退出
     stty echo;  #恢复回显
     tput rmcup; #恢复屏幕
     tput cvvis; #恢复光标
@@ -71,12 +96,14 @@ snake_init() {
     draw_gui $((Lines-1)) $Cols
 }
 
-game_pause() {                                #暂定游戏
+game_pause() {                                #暂停游戏
     echo -en "\033[$Lines;$((Cols-50))H\033[33mGame paused, Use space or enter key to continue\033[0m";
-    while read -n 1 space; do
+    while ! [ -f $EXITFLAG ]; do
+        space="$(readkey)"
         [[ ${space:-enter} = enter ]] && \
             echo -en "\033[$Lines;$((Cols-50))H\033[33mPress <space> or enter to pause game           \033[0m" && return;
         [[ ${space:-enter} = q ]] && snake_exit;
+        sleep 0.05;
     done
 }
 
@@ -141,9 +168,14 @@ mk_random() {                               #产生随机点和随机数
 
 new_game() {                                #重新开始新游戏
     snake_init;
-    while true; do
-        read -t ${speed[$spk]} -n 1 key;
-        [[ $? -eq 0 ]] && Gooooo;
+    while ! [ -f $EXITFLAG ]; do
+        #read -t ${speed[$spk]} -n 1 key;
+        key="$(readkey)"
+        if [[ -z "$key" ]]; then
+            sleep ${speed[$spk]};
+        else
+            Gooooo;
+        fi
 
         ((liveflag==0)) || mk_random;
         if (( sumnode > 0 )); then
@@ -187,29 +219,44 @@ print_game_start() {
         echo -ne "\033[$((x+i));${y}H\033[45m${game_start[$i]}\033[0m";
     done
 
-    while read -n 1 anykey; do
+    while ! [ -f $EXITFLAG ]; do
+        anykey="$(readkey)"
         [[ ${anykey:-enter} = enter ]] && break;
         [[ ${anykey:-enter} = q ]] && snake_exit;
         [[ ${anykey:-enter} = s ]] && ch_speed;
+        sleep 0.05;
     done
     
-    while true; do
+    while ! [ -f $EXITFLAG ]; do
         new_game;
         print_good_game;
-        while read -n 1 anykey; do
+        while ! [ -f $EXITFLAG ]; do
+            anykey="$(readkey)"
             [[ $anykey = n ]] && break;
             [[ $anykey = q ]] && snake_exit;
+            sleep 0.05;
         done
     done
 }
 
-game_main() {
-    trap 'snake_exit;' SIGTERM SIGINT; 
-    stty -echo;                               #取消回显
-    tput civis;                               #隐藏光标
-    tput smcup; clear;                        #保存屏幕并清屏
+stty -echo &> /dev/null;                  #取消回显
+tput civis;                               #隐藏光标
+tput smcup; clear;                        #保存屏幕并清屏
 
+[ -f $EXITFLAG ] && rm $EXITFLAG
+[ -f $WRITEFILE ] && rm $WRITEFILE
+[ -f $READFILE ] && rm $READFILE
+trap 'snake_exit;' SIGTERM SIGINT; 
+
+{
     print_game_start;                         #开始游戏 
-}
+} &
 
-game_main;
+IFS=""
+while read -n 1 gkey; do
+    [ "$gkey" = ' ' ] && gkey="space"
+    echo "${gkey:-enter}" >> $WRITEFILE
+    [[ "$gkey" = 'q' ]] || [[ "$gkey" = 'Q' ]] && break
+done
+
+snake_exit

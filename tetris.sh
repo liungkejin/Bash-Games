@@ -612,7 +612,7 @@ replay() {
                 ((nextbk==1)) && !((nextbk=0)) && break;
                 ((k+=1)) && ((k==TIME)) && break;
 
-                sleep 0.05
+                [[ -z "$key" ]] && sleep 0.05
             done
  
             check_stop; (($?==1)) && break;
