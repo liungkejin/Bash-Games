@@ -6,6 +6,30 @@
 # Email: liungkejin@gmail.com
 #
 
+EXITFLAG="/tmp/tetris_exit.flag"
+WRITEFILE="/tmp/tetris_pipe.in"
+READFILE="/tmp/tetris_pipe.out"
+
+INPUT_PIPES=()
+readkey() {
+    local txt;
+    [ -f $WRITEFILE ] && mv $WRITEFILE $READFILE &> /dev/null
+    if [ -f $READFILE ]; then
+        txt="$(cat $READFILE 2> /dev/null)"
+        if ! [ -z "$txt" ]; then
+            INPUT_PIPES+=(${txt})
+        fi
+        rm $READFILE &> /dev/null
+    fi
+
+    if ((${#INPUT_PIPES[@]} > 0)); then
+        echo -n "${INPUT_PIPES[0]}";
+        unset INPUT_PIPES[0];
+        # INPUT_PIPES=(${INPUT_PIPES[@]:1})
+    fi
+}
+
+
 # const value
 #======================================固定值================================#
 BXLINES=3;  BXCOLNS=6;  # 小方块的高和宽
@@ -13,9 +37,34 @@ MAPX=20;    MAPY=10;
 NAME=('I' 'S' 'Z' 'L' 'J' 'T' 'O');
 FLAG=('2' '2' '2' '4' '4' '4' '1');
 
-declare -A mapflag mapname;
-mapflag=([I]=2 [S]=2 [Z]=2 [L]=4 [J]=4 [T]=4 [O]=1);
-mapname=([I]=1 [S]=2 [Z]=3 [L]=4 [J]=5 [T]=6 [O]=7);
+#declare -A mapflag mapname;
+#mapflag=([I]=2 [S]=2 [Z]=2 [L]=4 [J]=4 [T]=4 [O]=1);
+#mapname=([I]=1 [S]=2 [Z]=3 [L]=4 [J]=5 [T]=6 [O]=7);
+mapflag() {
+    case "$1" in
+        I) echo 2;;
+        S) echo 2;;
+        Z) echo 2;;
+        L) echo 4;;
+        J) echo 4;;
+        T) echo 4;;
+        O) echo 1;;
+        *) echo 2;;
+    esac
+}
+mapname() {
+    case "$1" in
+        I) echo 1;;
+        S) echo 2;;
+        Z) echo 3;;
+        L) echo 4;;
+        J) echo 5;;
+        T) echo 6;;
+        O) echo 7;;
+        *) echo 1;;
+    esac
+}
+
 colorone=(31 32 33 34 35 36 37);
 colortwo=(31 32 33 34 35 36 37);
 
@@ -85,8 +134,9 @@ game_init() { # game_init
 #主框的属性
     mainw=59;               mainh=60;                   # 主框的宽和高
     mainctx=0;              maincty=4;                  # 主框中心打印点
-    upx=$((SCLINES-62));    dnx=$((SCLINES-1));         # 界面的上下 x
+    upx=1;                  dnx=$((SCLINES-1));         # 界面的上下 x
     lty=$((SCCOLNS/2-50));  rty=$((lty+61));            # 界面的左右 y
+    ((lty<=0)) && lty=1;
 
 #next的属性
     nextw=40;           nexth=16;                 # next框的高和宽
@@ -134,9 +184,12 @@ MAP=(0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
 #------------------------------------------------------------------------#
 
 game_exit() {
+    touch $EXITFLAG;
+    wait # 等待进程退出
+
     tput rmcup;
     tput cvvis;
-    stty echo;
+    stty echo &> /dev/null;
     
     (($#==1)) && echo "window is too small";
     exit 0;
@@ -189,7 +242,7 @@ paint_box() {
 
 #打印界面
 paint_gui() {
-    ((upx<=0 || lty<=0)) && game_exit 1;
+    # ((upx<=0 || lty<=0)) && game_exit 1;
 
     paint_box $upx $lty $mainw $mainh 34; #画主框
     paint_box $ntx $nty $nextw $nexth 33; #画next框
@@ -251,8 +304,9 @@ paint_score() {
 
 #根据name选择要打印的方块
 paint_x() {
-    local x=$centerx y=$centery i
-    local n=$((${mapname[$name]}-1));
+    local x=$centerx y=$centery
+    local i=$(mapname $name)
+    local n=$((i-1));
 
     find_array;
     for (( i = 0; i < 4; i++ )); do
@@ -272,7 +326,8 @@ erase_x() {
 
 rotate_x() {
     ((flag+=1));
-    ((flag>mapflag[$name])) && flag=1;
+    local mflag=$(mapflag $name);
+    ((flag>mflag)) && flag=1;
 }
 #------------------------------------------------------------------------#
 
@@ -372,7 +427,7 @@ check_stop() {
     if ((i!=4)); then #不能在动了，则记录
         for (( i = 0; i < 4; i++ )); do
             ((x=(sx+${ax}[$i]))); ((y=(sy+${ay}[$i])));
-            n=$((10*x+y)); MAP[$n]=${mapname[$name]};
+            n=$((10*x+y)); MAP[$n]=$(mapname $name);
         done
         have_score;
 
@@ -452,10 +507,11 @@ go_fast() { #快速固定
 game_pause() {
     echo -ne "\033[$((hpctx+17));$((hpcty+5))H\033[31mGame Paused\033[0m";
     local pkey;
-    while true; do
-        read -n 1 pkey;
+    while ! [ -f $EXITFLAG ]; do
+        pkey="$(readkey)"
         [[ $pkey = 'q' ]] || [[ $pkey == 'Q' ]] && game_exit;
         [[ $pkey = 'p' ]] || [[ $pkey == 'P' ]] && break;
+        sleep 0.1
     done
     echo -ne "\033[$((hpctx+17));$((hpcty+5))H\033[31m           \033[0m";
 }
@@ -497,20 +553,25 @@ new_game() {
     local i gmover=0 nextbk=0;
 
     game_init; #初始化游戏
-    while true; do
+    while ! [ -f $EXITFLAG ]; do
         paint_next; #在next框中打印下一个方块
         blockarr+=($name $flag $nname $nflag);
 
         check_first; (($?==1)) && return; #检查是否游戏结束
 
-        while true; do
+        while ! [ -f $EXITFLAG ]; do
             for (( i = 0; i < TIME; i++ )); do
-                read -n 1 -t 0.1 key; #等待按键
-                (($?==0)) && keypress; 
-                (($?==0)) && keyarray+=(${key:-space});
-                (($?==0)) || keyarray+=("nothing");
+                key="$(readkey)"
+                if ! [ -z "$key" ]; then
+                    keypress;
+                    keyarray+=(${key:-space});
+                else
+                    keyarray+=("NUL");
+                fi
 
                 ((nextbk==1)) && !((nextbk=0)) && break;
+
+                sleep 0.05
             done
 
             check_stop; (($?==1)) && break;
@@ -535,15 +596,14 @@ replay() {
         paint_next -n;
         check_first; (($?==1)) && return 0;
 
-        while true; do
+        while ! [ -f $EXITFLAG ]; do
             local k=0 anykey;
-            while true; do
+            while ! [ -f $EXITFLAG ]; do
                 key=${keyarray[j++]}; [[ $key = [pP] ]] && continue;
                 keypress; 
                 #((j+=1));
-
-                read -n 1 -t 0.01 anykey; 
-                if (($?==0)); then 
+                anykey="$(readkey)"
+                if ! [ -z "$anykey" ]; then 
                     [[ $anykey = [pP] ]] && game_pause;
                     [[ $anykey = [qQ] ]] && game_exit;
                     [[ $anykey = [eE] ]] && level=1 && return 0;
@@ -551,6 +611,8 @@ replay() {
 
                 ((nextbk==1)) && !((nextbk=0)) && break;
                 ((k+=1)) && ((k==TIME)) && break;
+
+                sleep 0.05
             done
  
             check_stop; (($?==1)) && break;
@@ -576,8 +638,8 @@ game_over() {
     paint_game_over;
 
     level=1; local pkey;
-    while true; do
-        read -n 1 pkey;
+    while ! [ -f $EXITFLAG ]; do
+        pkey="$(readkey)"
         [[ $pkey = 'q' ]] || [[ $pkey = 'Q' ]] && game_exit;
         [[ $pkey = 'n' ]] || [[ $pkey = 'N' ]] && break;
         [[ $pkey = 's' ]] || [[ $pkey = 'S' ]] && ((level=level%9+1));
@@ -590,10 +652,6 @@ game_over() {
 }
 
 game_start() {
-    tput civis; stty -echo;
-    tput smcup; clear;
-    trap 'game_exit;' SIGINT SIGTERM
-
     score=0; #总分数
     level=1; #等级
     TIME=9;
@@ -612,24 +670,42 @@ game_start() {
     done
 
     local pkey='x';
-    while true; do
-        read -n 1 pkey;
-        [[ ${pkey:-enter} = 'enter' ]] && break;
+    while ! [ -f $EXITFLAG ]; do
+        pkey="$(readkey)"
+        [[ ${pkey} = 'enter' ]] && break;
+        [[ $pkey = 'b' ]] || [[ $pkey = 'B' ]] && break;
         [[ $pkey = 'q' ]] || [[ $pkey = 'Q' ]] && game_exit;
         [[ $pkey = 's' ]] || [[ $pkey = 'S' ]] && ((level=level%9+1));
         echo -ne "\033[$((x+8));$((ycent/2-1))H\033[40m$level\033[0m";
+        sleep 0.1
     done
     olevel=$level;
 }
 
-game_main() {
+#----------------------------------------------------------------------#
+
+tput civis; stty -echo &> /dev/null;
+tput smcup; clear;
+
+[ -f $EXITFLAG ] && rm $EXITFLAG
+[ -f $WRITEFILE ] && rm $WRITEFILE
+[ -f $READFILE ] && rm $READFILE
+
+trap 'game_exit;' SIGINT SIGTERM
+
+{
     game_start;
-    while true; do
+    while ! [ -f $EXITFLAG ]; do
         new_game;
         game_over;
     done
-}
-#----------------------------------------------------------------------#
+} &
 
-game_main;
+IFS=""
+while read -n 1 gkey; do
+    [ "$gkey" = ' ' ] && gkey="space"
+    echo "${gkey:-enter}" >> $WRITEFILE
+    [[ "$gkey" = 'q' ]] || [[ "$gkey" = 'Q' ]] && break
+done
 
+game_exit
